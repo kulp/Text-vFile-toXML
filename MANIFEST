@@ -4,8 +4,6 @@ lib/Text/vFile/toXML.pm
 Makefile.PL
 MANIFEST
 META.yml			# Will be created by "make dist"
-pod2htmd.tmp
-pod2htmi.tmp
 README
 t/00-load.t
 t/boilerplate.t
