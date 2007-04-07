@@ -6,6 +6,7 @@ WriteMakefile(
     NAME                => 'Text::vFile::toXML',
     AUTHOR              => 'Darren Kulp <kulp@cpan.org>',
     VERSION_FROM        => 'lib/Text/vFile/toXML.pm',
+    LICENSE             => 'bsd',
     ABSTRACT_FROM       => 'lib/Text/vFile/toXML.pm',
     PL_FILES            => {},
     PREREQ_PM => {

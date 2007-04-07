@@ -1,8 +1,8 @@
 --- #YAML:1.0
 name:                Text-vFile-toXML
-version:             0.02
+version:             0.03
 abstract:            Convert vFiles into equivalent XML
-license:             ~
+license:             bsd
 generated_by:        ExtUtils::MakeMaker version 6.31
 distribution_type:   module
 requires:     
