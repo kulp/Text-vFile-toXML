@@ -9,3 +9,7 @@ Revision history for Text-vFile-toXML
 0.03    2007-04-07T12:47-0500
         Fixed LICENSE in Makefile.PL (instead of META.yml, where it gets
         overwritten).
+
+0.04    2007-12-28T16:10-0600
+        Added some tests to make Devel::Cover happy; moved to Module::Install.
+        No functionality changes (as far as I know!).

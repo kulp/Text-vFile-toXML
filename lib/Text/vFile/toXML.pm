@@ -9,11 +9,11 @@ Text::vFile::toXML - Convert vFiles into equivalent XML
 
 =head1 VERSION
 
-Version 0.03
+Version 0.04
 
 =cut
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 use Carp qw(croak);
 use Text::vFile::asData;
@@ -22,7 +22,7 @@ use XML::Quick;
 use base qw(Exporter);
 our @EXPORT_OK = qw(to_xml xCalNS);
 
-our %attrmap = qw(language xml:lang);
+our %attrs = qw(language xml:lang);
 our $xCalNS  = 'urn:ietf:params:xml:ns:xcal';
 
 =head1 SYNOPSIS
@@ -41,7 +41,7 @@ Draft (L<http://tools.ietf.org/html/draft-royer-calsch-xcal-03>).
         do { open my $fh, $arg or die "can't open ics: $!"; $fh }
     )->to_xml;
 
-	use Text::vFile::asData; # to make the functional example work
+    use Text::vFile::asData; # to make the functional example work
     my $data =
         Text::vFile::asData->new->parse(
             do {
@@ -67,31 +67,25 @@ function if you wish to use the functional interface.
 
 Creates a new Text::vFile::toXML object; takes a list of key-value pairs for initialization, which must contain exactly one of the following:
 
-	filehandle => (filehandle object)
-	filename   => (string)
-	data       => (Text::vFile::asData struct)
+    filehandle => (filehandle object)
+    filename   => (string)
+    data       => (Text::vFile::asData struct)
 
 =cut
 
 sub new {
-	my ($type, %args) = @_;
+    my ($type, %args) = @_;
 
-	croak "Must provide exactly one of (filehandle, filename, or data)"
-		unless +@{[grep {defined $_} @args{qw(filehandle filename data)}]} == 1;
+    croak "Must provide exactly one of (filehandle, filename, or data)"
+        unless +@{[ grep defined, @args{qw(filehandle filename data)} ]} == 1;
 
-	$args{_data} = delete $args{data}
-		|| Text::vFile::asData->new->parse(
-			$args{filehandle}
-				|| ($args{filename}
-					&& do {
-						open my $fh, $args{filename}
-							or die "Can't open vFile: $!"; $fh
-						}
-					)
-		);
-	
-	my $self = bless { %args }, $type;
-	return $self;
+    $args{_data} = delete $args{data}
+        || Text::vFile::asData->new->parse(
+            $args{filehandle} || ($args{filename} &&
+                do { open my $fh, $args{filename} or die; $fh }
+            ));
+    
+    bless \%args, $type
 }
 
 =head2 to_xml
@@ -103,12 +97,8 @@ it takes a Text::vFile::asData-compatible data structure as its only parameter.
 =cut
 
 sub to_xml {
-	xml({
-		iCalendar => {
-			_attrs => { 'xmlns:xCal' => $xCalNS },
-			convert($_[0]->{_data}{objects} || $_[0]->{objects}),
-		},
-	})
+    xml({ convert($_[0]->{_data}{objects} || $_[0]->{objects}) },
+        { root => 'iCalendar',  attrs => { 'xmlns:xCal' => $xCalNS } })
 }
 
 =head2 convert
@@ -119,34 +109,25 @@ ones.
 =cut
 
 sub convert {
-	my ($data) = @_;
-	my %result;
+    my ($data) = @_;
+    my %result;
 
-	for my $object (@$data) {
-		push @{ $result{lc $object->{type}} },
-			+{
-				convert($object->{objects}),
-				map {
-					my $propname = $_;
-					lc $propname => [
-						map {
-							my $propval = $_;
-							+{
-								_cdata => $propval->{value},
-								_attrs => {
-									map {
-										($attrmap{lc $_} || lc $_)
-											=> $propval->{param}{$_}
-									} keys %{ $propval->{param} },
-								},
-							},
-						} @{ $object->{properties}{$propname} },
-					],
-				} keys %{ $object->{properties} },
-			};
-	}
+    for my $object (@$data) {
+        my ($props, $objects, $type) = @$object{qw(properties objects type)};
 
-	return %result;
+        push @{ $result{lc $type} }, +{
+            convert($objects),
+            map {
+                my $propname = $_;
+                lc $propname => [ map { my ($p, $v) = @$_{qw(param value)}; +{
+                    _cdata => $v,
+                    _attrs => +{ map { $attrs{lc $_} || lc $_ => $p->{$_} } keys %$p } }
+                } @{ $props->{$propname} } ]
+            } keys %$props
+        };
+    }
+
+    return %result;
 }
 
 =head1 AUTHOR
@@ -164,7 +145,7 @@ point of nearly trivializing this module.
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2006 Darren Kulp, all rights reserved.
+Copyright 2006 Darren Kulp.
 
 This program is released under the terms of the BSD license.
 
@@ -173,3 +154,4 @@ This program is released under the terms of the BSD license.
 1; # End of Text::vFile::toXML
 __END__
 
+# vi: set ts=4 sw=4 et ai: #
