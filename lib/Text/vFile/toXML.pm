@@ -145,7 +145,7 @@ point of nearly trivializing this module.
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2006 Darren Kulp.
+Copyright 2006-2017 Darren Kulp.
 
 This program is released under the terms of the BSD license.
 
